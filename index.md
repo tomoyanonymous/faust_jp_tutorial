@@ -1,3 +1,4 @@
+
 # faust_jp \#1
 
 Matsuura Tomoya/松浦知也
@@ -6,404 +7,936 @@ Matsuura Tomoya/松浦知也
 
 ---
 
-## 今回の最終目標
+# 自己紹介
 
-- 2Dの時:イラレなどでは作りにくい図形をプログラミングで作る
-- 今回:**普通の3Dモデリングでは作りにくい3Dオブジェクトを作る**
-
----
-
-## 3Dのデータ構造
-
-|データの種類|内容|
-|---|----|
-|ポイントクラウド|点の集まり|
-|ワイヤーフレーム|ポイントクラウド+頂点同士のつながり|
-|サーフェス|ワイヤーフレーム+どこに面が張られているか|
-|ソリッド|サーフェース+どこの面で閉じた空間が充填されているか|
-
-- 最終的に体積を持っていないと3Dプリンタなどで出力できない
+- 松浦 知也
+- 九州大学 大学院芸術工学府
+- サウンドアート制作とか、演奏したりとか、プログラミングしたりとか
 
 ---
 
-## 3D+プログラミング
+# 本日の流れ
 
-- これらのデータを直に扱うのも不可能ではないが、大変
-- そこでProcessingの時と同様、**単純な3Dオブジェクトを組み合わせる**
-- 加えて3Dでは、**単純な2D図形を押し出して3Dにする**事もできる
-
----
-
-## 単純図形の組み合わせ
-
-![青:sphere 赤:cube 緑:cylinder](./img/primitives.png)
+- Faustについての簡単な概要紹介
+- 各環境の軽いデモ
+- 文法の説明
+- コンパイラ周りの説明（アーキテクチャ、faust2xxx）
+- 皆でハンズオン
 
 ---
 
-### 押し出し
-
-
-![全てsquareを押し出している。拡大縮小、回転しながら押し出すことで様々な形状が作れる](./img/extrusion.png)
+# What's FAUST?
 
 ---
 
-
-## 作例
-
-![squareを回転押し出し+ランダム位置にcylinderを配置して引き算
-](./img/scadsample.png)
+**FAUST** = **F**unctional-**AU**dio-**ST**ream
 
 ---
 
-## 今回使うソフト：OpenSCAD
+## FAUST
 
-<http://www.openscad.org/>
+- 音声信号処理のための関数型プログラミング言語
+- フランスのGrameという研究所が2002年頃から開発、ライブラリではスタンフォード大学CCRMAなども協力
+- コンパイラは、FAUST言語からC, C++, JAVA, JavaScript, ASM.js, LLVM ビットコードを出力する
 
-- プログラミング＋3DモデリングだとRhinoceros用のGrasshopperがよく使われるが、Rhinocerosは有償
-- 今回は3Dの形状を作るところまでで良いので、OpenSCADでも十分
+--
+
+- “アーキテクチャファイル”と様々なスクリプトで多フォーマットに変換
+- Max/Pdオブジェクト、スパコUGen、VST/AUプラグイン等
+- コンパイラはGPLライセンス・クロスプラットフォーム
+- 但しコンパイラで出力したコードはFAUSTソースのライセンスに従うので自由に決められる
+- 標準ライブラリもGPLだが普通に使うだけならライセンス自由
+
+--
+
+![FAUSTワークフロー](img/faust_workflow.png)<!-- .element style="max-width:70%;" -->
 
 ---
 
-![これらにif/for文、数学関数などを組み合わせて色んな形を作る
-](img/flowchart.svg)
+## 立ち位置
 
 
 ---
 
-## サンプル1
+## 一番近いもの：Gen
+
+- 全てがサンプル単位（メッセージとの区別なし）
+- リアルタイムにC++に変換
+
+---
+
+## FAUSTのココがいい
+
+* 一つのコードを様々な環境に再利用できる
+* リバーブなどの複雑なシグナルパスを持つものもMaxなどに比べ簡潔に書ける
+* ライブラリの全てがFAUSTだけで記述されている
+* C++直書きするよりも高速（その分読めないが）
+
+---
+
+## FAUSTのココがダメ
+
+* 文法が特殊すぎる（但しコツを掴めばそこからは早い）
+* エラーメッセージが何を指してるのか全くわからない
+* 全てがシグナルレートなのでモノによってはリソースの無駄遣い
+* サンプラー、グラニュラーなどwav読み込み系✕
+* FFT、高速畳み込み系✕
+
+---
+
+# 開発環境
+
+* コンパイラ
+* FaustLive
+* faustgen~ on Cycling’74 Max
+* オンラインコンパイラ
+* Faust Playground(beta)
+* Faust WebAssembly コンパイラ(beta)
+* ~~FaustWorks~~（開発終了）
+
+--
+
+||Auto Compile|External source|GUI|Audio|binary export|editor|
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+|Compiler|✕|◯|✕|✕|◎(local)|✕|
+|FaustLive|◎(Watch)|◯|◯|◯|◯(online)|✕|
+|faustgen~|◯|△|✕|◯|✕|△|
+|Online Compiler|✕|✕|✕|✕|◯|◯|
+|Faust Playground|◯|✕|◯|◯|◯|◯|
+|Wasm Compiler|△|✕|◯|◯|◯|✕|
+
+---
+
+# 何はともあれ、動かしてみよう
+
+順番にデモします
+
+---
+
+## コンパイラ
+
+以下のコードを書いて.dspというファイルを作る
 
 ```java
-//tutorial1.scad
-//Processing同様スラッシュ*2以降はコメントアウト（無効）
+//first.dsp
+process=_;
+```
 
-// 真ん中に箱を置く
-cube(10); //単位はmm
+--
+
+コマンドラインで以下の用に打つ
+
+```bash
+cd (ファイルのあるディレクトリ)
+faust first.dsp
+```
+
+--
+
+ぶわーっとこんな感じのが出てくる
+
+```cpp
+//name: "first"
+//Code generated with Faust 2.1.0 (http://faust.grame.fr)
+
+
+#ifndef  __mydsp_H__
+#define  __mydsp_H__
+
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif
+
+
+
+#ifndef FAUSTCLASS
+#define FAUSTCLASS mydsp
+#endif
+
+class mydsp : public dsp {
+
+ private:
+
+	int fSamplingFreq;
+
+ public:
+
+	void metadata(Meta* m) {
+		m->declare("name", "first");
+	}
+
+	virtual int getNumInputs() {
+		return 1;
+
+	}
+	virtual int getNumOutputs() {
+		return 1;
+
+	}
+	virtual int getInputRate(int channel) {
+		int rate;
+		switch (channel) {
+			case 0: {
+				rate = 1;
+				break;
+			}
+			default: {
+				rate = -1;
+				break;
+			}
+
+		}
+		return rate;
+
+	}
+	virtual int getOutputRate(int channel) {
+		int rate;
+		switch (channel) {
+			case 0: {
+				rate = 1;
+				break;
+			}
+			default: {
+				rate = -1;
+				break;
+			}
+
+		}
+		return rate;
+
+	}
+
+	static void classInit(int samplingFreq) {
+
+	}
+
+	virtual void instanceConstants(int samplingFreq) {
+		fSamplingFreq = samplingFreq;
+
+	}
+
+	virtual void instanceResetUserInterface() {
+
+	}
+
+	virtual void instanceClear() {
+
+	}
+
+	virtual void init(int samplingFreq) {
+		classInit(samplingFreq);
+		instanceInit(samplingFreq);
+	}
+	virtual void instanceInit(int samplingFreq) {
+		instanceConstants(samplingFreq);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+
+	virtual int getSampleRate() {
+		return fSamplingFreq;
+	}
+
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("first");
+		ui_interface->closeBox();
+
+	}
+
+	virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) {
+		FAUSTFLOAT* input0 = inputs[0];
+		FAUSTFLOAT* output0 = outputs[0];
+		for (int i = 0; (i < count); i = (i + 1)) {
+			output0[i] = FAUSTFLOAT(float(input0[i]));
+
+		}
+
+	}
+
+
+};
+
+
+#endif
+
+```
+
+--
+
+### 保存
+
+```bash
+faust first.dsp -o first.cpp
+```
+
+--
+
+### 画像出力
+
+```bash
+#必ずソースファイルと同ディレクトリで実行
+faust2svg first.dsp 
+```
+
+--
+
+fisrt-svgというフォルダの中にprocess.svgというのが現れる
+
+![](./sample_program/first-svg/process.svg)
+
+--
+
+ソースファイルを以下のようにして、もう一度
+
+```java
+//second.dsp
+import("stdfaust.lib");
+process=fi.lowpass(1,100);
+```
+
+```bash
+faust2svg second.dsp 
+```
+
+--
+
+![](./sample_program/second-svg/process.svg)
+
+ブラウザで開くと、ネストされた部分をクリックで掘っていける
+
+---
+
+## FaustLive
+
+とりあえず起動してCmd+Nで新規Window
+
+![](img/faustlive_icon.jpeg)
+
+--
+
+こんな画面が出るので、dspファイルをドラッグドロップ
+
+![](./img/faustlive_window.png)
+
+--
+
+デモ動かしてみましょう
+
+```java
+//third.dsp
+import("stdfaust.lib");
+process = dm.virtual_analog_oscillator_demo;
+```
+
+--
+
+※いきなり音出ます
+
+![](img/faustlivedemo1.png)
+
+--
+
+Cmd+G押すとブラウザがSVG開きます
+
+![](img/analogdemo-svg/process.svg)
+
+--
+
+Cmd+KをするとQRコードとURLが出てくる
+
+![](./img/faustlivehttp.png)
+
+--
+
+出てきたURLにアクセス<br>（同じネットワーク内ならスマホでもOK）
+
+![](./img/faustlivehttpbrowser.png)
+
+--
+
+- これは、音自体はFaustLiveから出ている
+- GUIのコントロールをブラウザからFaustLiveのアプリに向けてHTTPリクエストを飛ばして実現している
+- MIDIもポートが勝手に立ち上がっているので、MIDIコン繋げばコントロール出来る（ソースコード側で対応していれば）
+- OSCも同上
+
+--
+
+- ソースコードを改変→上書き保存してみよう
+- 自動で更新、音はクロスフェード掛けてくれる
+
+--
+
+### エクスポート
+
+- Cmd+Pでバイナリエクスポートのメニューが出る
+- grameのサーバーにソース送ってコンパイル、バイナリをzipで送り返してくれる（Faustweb）
+
+![](img/faustweb.png)
+
+---
+
+## faustgen~
+
+Maxのウィンドウ上で、faustgen~オブジェクトを作る
+
+![](img/faustgen1.png)
+
+--
+
+![](img/faustgen2.png)
+
+--
+
+- 何故かSVGブラウザがSafari固定
+- Max標準のエディタだとかなり開発しづらいので外部エディタ推奨
+- FaustコードはMaxパッチの中にまるまる保存されるので、依存ファイルが無ければパッチ単体だけコピーすればよし
+- Maxに慣れているなら、プロトタイピングのスピードはこれが一番(私見)
+- 但し、時々Maxを巻き込んでクラッシュ・・・
+
+---
+
+## オンラインコンパイラ
+
+<http://faust.grame.fr/onlinecompiler>
+
+![](./img/faust_oc.png)
+
+--
+
+- 基本はFaustLiveと同じ
+- 但し音は出ない
+- コンパイルは全てサーバーサイド
+- 適当なサンプルコードをコピペして、バイナリにしてDLするには便利
+
+---
+
+## Faust Playground
+
+<http://faust.grame.fr/faustplayground/>
+
+![](./img/faust_pg.png)
+
+--
+
+- Webaudioで、ブラウザから音が出る
+- Faustコードで出来たブロックを更にパッチングできる
+- まだまだ開発途中なので不安定
+
+---
+
+## Faust WebAssembly Compiler
+
+<http://faust.grame.fr/modules/faustlive-wasm.html>
+
+GoogleChromeのみ
+
+--
+
+- 2017年8月に出たばっかり
+- シングルファイルのみのコンパイル
+- WebAssemblyなのでブラウザ上にしてはコンパイル時間が早い(らしい)
+
+---
+
+# 文法解説
+
+---
+
+## 全てが関数
+
+* FAUSTの世界では、ほぼ全てがインプットかアウトプット、または両方を持つ関数
+* 複数のブロックを繋げたり並列したりして、大きなブロックを作るイメージ
+* 最後に`process`というブロックを定義してやると完成
+
+---
+
+## 基本のキ:passとcut
+
+```java
+process = _,!;//アンダーバーはpass、！はcut
+```
+
+![](./img/ident_cut_process.svg)
+
+これも、1in1outと1in0outという入出力のブロック
+
+---
+
+## コンポジション（接続）記法
+
+* FAUSTの最も特徴的な記法
+* 最低限、プリミティブとコンポジションを覚えるとプログラムが書ける
+* それぞれ入出力の規則があって、破るとコンパイルエラー
+
+|並列|直列|分岐|結合|再帰|
+|:---:|:---:|:---:|:---:|:---:|:---:|
+|`,`|`:`|`<:`|`:>`|`~`|
+
+--
+
+### A,B →並列
+
+```java
+process = 10 , * ; 
+```
+
+![](./img/par1-svg/process.svg)
+
+制限：**無し**
+
+**0in1out**と**2in1out**が組み合わさって**2in2out**になった
+
+--
+
+### A:B →直列
+
+```java
+process = ( * , / ) : + ; 
+```
+
+![](./img/seq1-svg/process.svg)
+
+制限：**Aの出力数==Bの入力数**
+
+--
+
+### A<:B →分岐
+
+```java
+process = (10,20)<:(+,*,/);
+```
+
+![](./img/split1-svg/process.svg)
+
+制限：**Aの出力数×n ==Bの入力数(n=2,3,4,,,)**
+
+--
+
+### A:>B →結合
+
+```java
+process = (10,20,30,40):*;
+```
+
+![](./img/merge1-svg/process.svg)<!-- .element style="width:300px;"-->
+
+制限:**Aの出力数==Bの入力数×n(n=2,3,4,,,)**
+
+--
+
+### A~B →再帰
+
+```java
+process = +(12345) ~ *(1103515245);
+```
+
+![](./img/rec1-svg/process.svg)
+
+制限:**Aの_入力_数≧Bの_出力_数**
+
+ここではA,Bともに1in1outなので満たしている
+
+---
+
+### 接続の優先順位
+
+**再帰>並列>直列>分岐＝結合**
+
+```java
+//以下2つは同じ(ソースコードの読みやすさを優先しましょう)
+process = (((_,0.5):*)<: (*,*) :> _) ~ _;
+process = (_,0.5 : * <: *,* :>_ ) ~ _;
+```
+
+![](img/kakko_setsumei.svg)
+
+
+---
+
+## 頭の体操
+
+![](sample_program/cross-svg/process.svg)
+
+どうやって作る？
+
+--
+
+## ヒント
+
+![](sample_program/cross-svg/cross_hint.png)
+
+--
+
+## 正解
+
+```java
+process = (_,_)<:(!,_,_,!)//ライブラリにあるro.cross(2)で実現化
+```
+
+だいたいライブラリでどうにかなるが、<br>考え方として覚えておくと便利
+
+---
+
+## 反復
+
+- いわゆるforループ的機能
+- 実は`par`以外あんまり使わない
+
+```java
+//1000,2000,3000,,,とバンドパスフィルタを8つ並列
+import("stdfaust.lib");
+process = par(i,8,fi.resonbp((i+1)*1000,1,1));
+```
+
+|並列|直列|総和|総乗|
+|:---:|:---:|:---:|:---:|
+|`par`|`seq`|`sum`|`prod`|
+
+--
+
+![](./sample_program/iteration-svg/process.svg)
+
+---
+
+## (引数付きの)関数
+
+- 同じ機能のパラメータ（定数）違いを作る時に便利
+- しかしなんと、**_引数なしでも使える!!!_**
+- FAUSTの中で2番目くらいにややこしい所
+
+<small>ここからは"関数"と呼ぶ場合は基本的には引数付き関数を指すことにします</small>
+
+--
+
+これはまだいい
+
+```java
+//ゲインを掛けた後、DCオフセットを加える関数
+gain_offset(gain,offset) = _:*(gain):+(offset);
+process = gain_offset(0.5,-0.3);
+```
+
+![](img/gainoffset1.svg)
+
+--
+
+引数無しで使う
+
+```java
+gain_offset(gain,offset) = _:*(gain):+(offset);
+process = gain_offset;
+```
+
+![](img/gainoffset2.svg)
+
+**引数がインプットとして追加される**
+
+--
+
+一部だけ引数を入れる
+
+```java
+gain_offset(gain,offset) = _:*(gain):+(offset);
+process = gain_offset(0.5);
+```
+
+![](img/gainoffset3.svg)
+
+足りない引数がインプットとして追加される
+
+--
+
+### 小技：引数の最後をinputにする
+
+```java
+import("stdfaust.lib");
+comp(gain,input) = input*(1 - gain* (input:abs:fi.lowpass(1,10)));
+process = comp(1); //引数を最後のinputは代入しない
+```
+
+![](sample_program/argumenttip-svg/process.svg)
+
+コンプレッサーのような、インプットを離れた場所で使う時に便利
+
+---
+
+## ローカル変数:with{}
+
+```java
+gain_offset(gain,offset) = _*gain+offset+initial_offset
+	with{
+			initial_offset = -0.5
+	};
+```
+
+※セミコロンはwithの中カッコの**後**
+
+---
+
+## ライブラリ関連
+
+ソースを整理していくための機能
+
+- `environment{}`
+- `library()`
+- `component()`
+- `import()`
+
+--
+
+### environment
+
+Cのstructとか、jsのオブジェクトに近い
+
+```java 
+params = environment{
+    gain = 0.5;
+    offset = -0.3;
+}
+gain_offset(gain,offset) = _:*(gain):+(offset);
+process = gain_offset(params.gain,params.offset);//ドットでアクセス
+```
+
+--
+
+### library()
+
+- ライブラリを`myfunc.lib`のように.libファイルに作っておける
+- ライブラリに`process=`は入れない
+
+```java
+//in myfunc.lib
+gain_offset(gain,offset) = _:*(gain):+(offset);
+//in mydsp.dsp
+mylib = library("myfunc.lib");
+process=mylib.gain_offset(0.5,-0.3)
+```
+
+--
+
+### component()
+
+- .dspファイルを直接呼び出す
+
+```java
+//in gainoffset.dsp
+process = _:*(0.5):+(-0.3);
+//in mydsp.dsp
+mygainoff = component("gainoffset.dsp");
+//実はlibrary("gainoffset.dsp").processでもOK
+process=mygainoff; //引数は使えないので注意
+```
+
+-- 
+
+### import()
+
+ライブラリの名前空間をそのまま展開
+
+```java
+//in myfunc.lib
+gain_offset(gain,offset) = _:*(gain):+(offset);
+//in mydsp.dsp
+import("myfunc.lib");
+process=gain_offset(0.5,-0.3)
 ```
 
 ---
 
-### 結果
+## 標準ライブラリ
 
-![](./img/scad1.png)
+<http://faust.grame.fr/library.html>
 
----
+`import("stdfaust.lib");`しておけば全ての標準ライブラリが使える
 
-```java
-// 真ん中に箱を置く
-cube(10); //単位はmm
+--
 
-//移動させる
-translate([30,20,0]){//中括弧は省略できるが見にくくなる
-    //幅、奥行き、高さを別々にする、中心に配置する
-    cube([10,20,30],center=true);
-}
-
-//移動してから軸の周りに回転させる。
-rotate([40,45,70]){
-    translate([30,20,0]){
-     cube([10,20,30],center=true);   
-    }
-}
-
-//回転してから平行移動させる
-translate([30,20,0]){
-    rotate([40,45,70]){
-    cube([10,20,30],center=true);   
-    }
-}
-```
-
----
-
-### 結果
-
-![](./img/scad2.png)
-
----
-
-## サンプル2
+## stdfaust.libの中身
 
 ```java
-//tutorial_3d_primitives.scad
-union(){//2つ以上のオブジェクトを合体
-    cube(10,center=true);
-    translate([0,0,7.5]){
-    sphere(10); //半径で指定。d＝にすると直径にも出来る
-}
-    translate([0,0,7.5*2]){
-    cylinder(10,5,7); //高さ 、始まり半径、終わり半径
-}
-    translate([0,0,30]){
-    sphere(7.5,$fn=100); //$fnでメッシュの粗さを変えられる。
-  }
-  
-  }
+//################################ stdfaust.lib ##########################################
+// The purpose of this library is to give access to all the Faust standard libraries
+// through a series of environment.
+//########################################################################################
 
+an = library("analyzers.lib");
+ba = library("basics.lib");
+co = library("compressors.lib");
+de = library("delays.lib");
+dm = library("demos.lib");
+dx = library("dx7.lib");
+en = library("envelopes.lib");
+fi = library("filters.lib");
+ho = library("hoa.lib");
+ma = library("maths.lib");
+ef = library("misceffects.lib");
+os = library("oscillators.lib");
+no = library("noises.lib");
+pf = library("phaflangers.lib");
+pm = library("physmodels.lib");
+re = library("reverbs.lib");
+ro = library("routes.lib");
+sp = library("spats.lib");
+si = library("signals.lib");
+sy = library("synths.lib");
+ve = library("vaeffects.lib");
+sf = library("all.lib");
 
 ```
 
+--
+
+- 標準ライブラリはフィルターやオシレーターなどが超充実してるのでガンガン使いましょう
+- signal.lib、route.lib、basic.lib辺りはとりあえず眺めておいて損はない
+
 ---
 
-## 結果
+## プリミティブ
 
-![](./img/tutorial2.png)
+- 演算子系(数学、ビット演算)
+- 数学関数（Cのmath.h/Max,Pdのexpr）
+- ディレイ、シグナルセレクター
+- ウェーブフォーム
+- **UI**
+
+--
+
+### 演算子系
+
+- `int`(キャスト),`+`,`-`,`*`,`/`,`^`(pow),`%`
+- `&`,`|`,`xor`,`<<`,`>>`,`<`,`<=`,`>`,`>=`,`==`,`!=`
+
+- int以外は1+2のような演算子記法もOK(優先順位はコンポジションより低い)、1:+(2),(1,2):+のような使い方もOK
+- \>などは分岐、結合と記号が被るのでカッコで囲まないと上手く行かないことが多い
+
+--
+
+## 数学関数
+
+- `cos`,`sin`,`tan`,`acos`,`asin`,`atan`,**`atan2`**
+- `exp`,**`log`**,`log10`,**`pow`**
+- `sqrt`,`abs`,
+- **`min`**,**`max`**,**`fmod`**,**`remainder`**,`floor`,`ceil`,`rint`
+
+太字のものは、2引数(インプット)
+
+--
+
+## ディレイ・シグナルセレクター
+
+- `mem`/`prefix`/シングルクオート→1サンプルディレイ- `@(n)` → nサンプルディレイ
+- `rdtable(size,initdata,rdindex)`→固定テーブル
+- `rwtable(size,initdata,wtdata,wtindex,rdindex)`→読み書きテーブル
+- `select2(sel,st0,st1)`,`select3(sel,st0,st1,st2)`<br>→シグナルセレクター（selが0,1,それ以上で判別、select2で1以上だと0を出力、また0以下はエラー）
 
 ---
 
-## サンプル3 組み合わせ
+## UI
+
+- Faustのソース内でUIを定義できる
+- ボタン、トグル、縦横スライダー、数値入力、<br>シグナルメーター、グルーピング
+- その他拡張メタデータも可能
+- **但し実装は出力する環境次第**
+- 例えばQtならスライダーをノブに出来たり、MIDI入力の定義ができるが、Max/Pdでは全部メッセージ入力で統一（メーターは実装なし）
+
+--
+
+### button
+
+`button("label")`
+
+![](img/button.png)
+
+押している間のみ1を出力、それ以外は0
+
+--
+
+### checkbox
+
+`checkbox(label)`
+
+![](img/checkbox.png)
+
+クリックで0/1を切り替え
+
+--
+
+### slider,nentry
+
+`hslider("label",default,min,max,step)`
+
+`vslider("label",default,min,max,step)`
+
+`nentry("label",default,min,max,step)`
+
+--
+
+### bargraph
+
+`hbargraph("label",min,max)`
+
+`vbargraph("label",min,max)`
+
+出力先が無いと自動的に削除されてしまうため、それを回避するための関数
+`attach(x,vumeter(x))`というのを使う事が多い
+
+--
+
+### Group
+
+`hgroup("name",exp),vgroup("name",exp),tgroup("name",exp)`
 
 ```java
-//tutorial3_boolean.scad
-module cylinder1(){//幾つかの処理をまとめるにはmoduleを使います
-        rotate([45,45,45]){
-        cylinder(10,5,5);
-        }
-    }
-module cylinder2(){
-         translate([2.5,5,2.5]){ 
-        rotate([30,30,30]){
-        cylinder(10,5,5);
-        }
-    }
-}
-union(){ // 合体(論理和) 実は書かなくても自動的にやってくれている
-    cylinder1();
-    cylinder2();
-    }
-
-translate([20,0,0]){ 
-    intersection(){ //共通部分（論理積）
-        cylinder1();
-        cylinder2();
-        }      
-}
-
-translate([40,0,0]){ 
-    difference(){ //引き算
-        cylinder1();
-        cylinder2();
-    }
-}
-
-translate([60,0,0]){ 
-    difference(){ //differenceは呼び出す順番に依って結果が変わる
-        cylinder2();
-        cylinder1();
-
-    }
-}
+gr = hgroup("Foo",        vgroup("Faa",            hslider("volume" ,def,min,max,step)
+        ... 
+    )
+    ...
+);
 ```
 
----
+ただ、Faustの記法としては異質なので<br>もう一つのほうがよく使う
 
-## 結果
+--
 
-![](./img/tutorial3.png)
-
----
-
-## サンプル4 2D図形
+### Group(Pathname)
 
 ```java
-//tutorial4_2d_primitives.scad
-square([10,20]);
-
-translate([20,0,0]){
-circle(10);
-}
-
-translate([40,0,0]){
-circle(10,$fn=100);//球と同じくメッシュの細かさが指定できる
-}
-
-translate([60,0,0]){
-text("A",20);//残念ながら日本語は無理
-}
-
-translate([80,0,0]){
-polygon([[10,0],[20,40],[40,25],[80,10],[30,-20]]);   
-}
+hs = hslider("/h:Foo/v:Faa/t:tabu/volume",def,min,max,step);
 ```
 
----
+定義場所が全然別の場所でもOK
 
-## 結果
+--
 
-![](./img/tutorial4.png)
+### metadata
 
----
-
-## サンプル5 直線押出し
+ラベルに[]でメタデータが埋められる。メタデータに沿った実装がされてれば有効になる
 
 ```java
-//tutorial5_linear_extrude.scad
-module my2d(){
-    difference(){ //booleanは2D同士にも使える
-     square([10,20],center=true);
-        translate([2,0,0]){
-         circle(4);
-        }
-        }   
-    }
-    
-    linear_extrude(10){ //1つだけなら高さの指定
-        my2d();
-    }
-translate([20,0,0]){
-     linear_extrude(10,scale=0.5){ //押し出しながら拡大縮小
-        my2d();
-    }
-}
-translate([40,0,0]){
-     linear_extrude(10,scale=0.5,twist=90){ //押し出しながら回転
-        my2d();
-    }
-}
-translate([60,0,0]){
-     linear_extrude(10,scale=0.5,twist=180,$fn=100){ //ここでも粗さの指定が出来る
-         my2d();
-    }
-}
-
+knob = hslider("volume[style:knob][unit:dB][tooltip:this is volume]",def,min,max,step);
 ```
 
----
+代表的なのは[style:knob]や表示単位[unit:Hz]とかMIDI実装の[cc:(割り当てたいCCナンバー)]とか
 
-## 結果
-
-![](./img/tutorial5.png)
-
----
-
-## サンプル6 回転押し出し
-
-```java
-//tutorial6_rotate_extrude.scad
-module my2d(){
-    translate([10,0,0]){
-    difference(){ 
-     square([10,20],center=true);
-        translate([2,0,0]){
-         circle(4);
-        }
-        }
-    }
-    } 
-    
-my2d();
-
-translate([40,0,0]){    
-rotate_extrude(){ //x軸回りに90度傾けてから、ｚ軸回りに360度押し出しながら回す
-    my2d();
-    }
-    
-}
- translate([80,0,0]){    
-rotate_extrude($fn=100){
-    my2d();
-    }
-    
-}
-```
-
----
-
-## 結果
-
-![](./img/tutorial6.png)
-
----
-
-## サンプル7 繰り返し
-
-```java
-numcubes = 32; //定数の定義はいきなり名前を宣言してOK
-difference(){
-    sphere(40,$fn=55); //中心に大きな球を作って、キューブを引き算
-   for(i=[1:numcubes]){ //Processingと書き方が違うので注意、この場合1から32まで
-        rotate([0,i*180/numcubes-90,i*2*360/numcubes]){
-        translate([45,0,0]){
-        rotate([45*i,45*i,45]){
-        cube(30,center=true); // 箱を回転して、平行移動して、また回転
-                    }       
-                }
-             }
-        }
-}
-```
-
----
-
-## 結果
-
-![](./img/tutorial7.png)
 
 
 ---
 
-## その他便利情報
 
-```java
-//rands(min,max,length)
-//一つの乱数が欲しい場合はこう（配列で返ってくるので取り出してあげないといけない）
-rands(-20,20,1)[0]
-
-//3次元空間をランダムに移動させる
-translate(rands(-20,20,3)){
-//cubeなど
-}
-
-//intersection_for(){}
-//ループ内で書いたオブジェクト全ての共通部分を取る（example3.scad参照）
-intersection_for(i=[1:10]){
-//cubeなど
-}
-
-//hull(){}
-//{}内の2D図形を輪ゴムで外側をくくったような2D図形を出す
-
-hull(){
-translate([10,10]){
-square(10);
-}
-text("a",10);
-}
-
-```
 
 ---
 
-## 出力
+# 参考リソース
 
-まずRender（砂時計マーク）する
-
-![](./img/render.png)
-
----
-
-## 出力
-
-その後ExportでSTLファイルに出力
-
-![](./img/export.png)
-
----
-
-## とりあえず困ったら
-
-<http://www.openscad.org/cheatsheet/index.html>
-
----
-
-## 日本語資料
-
-※あんまり無い
-
-[OpenSCAD日本語Wiki(一部未翻訳)](https://ja.wikibooks.org/wiki/OpenSCAD_User_Manual)
-
-[OpenSCADで始めるプログラマブルな3Dモデリング](http://qiita.com/ganta-viii@github/items/b984519ad24ac3c7d7d5)
-
-[OpenSCAD で『けん玉』作ってみた – 『たま』編（初心者向けのチュートリアルに使ってね）](http://picworld.jp/2016/12/21/openscad-%E3%81%A7%E3%80%8E%E3%81%91%E3%82%93%E7%8E%89%E3%80%8D%E4%BD%9C%E3%81%A3%E3%81%A6%E3%81%BF%E3%81%9F-%E3%80%8E%E3%81%9F%E3%81%BE%E3%80%8F%E7%B7%A8%EF%BC%88%E5%88%9D%E5%BF%83%E8%80%85/)
-
+- <http://faust.grame.fr>
+- <https://github.com/grame-cncm/faust> Gitリポジトリ
+- <https://ccrma.stanford.edu/~rmichon/faustTutorials/>
+- <https://ccrma.stanford.edu/~rmichon/faustDay2017/> ビデオチュートリアル
+- <https://ccrma.stanford.edu/~jos/filters/Digital_Filtering_Faust_PD.html>
+- <https://matsuuratomoya.com/blog/2016-12-01/faust-introduction/>
 
 

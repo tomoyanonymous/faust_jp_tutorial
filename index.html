@@ -9,45 +9,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
   <link rel="stylesheet" href="reveal.js/css/reveal.css">
   <style type="text/css">code{white-space: pre;}</style>
-  <style type="text/css">
-div.sourceCode { overflow-x: auto; }
-table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
-  margin: 0; padding: 0; vertical-align: baseline; border: none; }
-table.sourceCode { width: 100%; line-height: 100%; }
-td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
-td.sourceCode { padding-left: 5px; }
-code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
-code > span.dt { color: #902000; } /* DataType */
-code > span.dv { color: #40a070; } /* DecVal */
-code > span.bn { color: #40a070; } /* BaseN */
-code > span.fl { color: #40a070; } /* Float */
-code > span.ch { color: #4070a0; } /* Char */
-code > span.st { color: #4070a0; } /* String */
-code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
-code > span.ot { color: #007020; } /* Other */
-code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
-code > span.fu { color: #06287e; } /* Function */
-code > span.er { color: #ff0000; font-weight: bold; } /* Error */
-code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
-code > span.cn { color: #880000; } /* Constant */
-code > span.sc { color: #4070a0; } /* SpecialChar */
-code > span.vs { color: #4070a0; } /* VerbatimString */
-code > span.ss { color: #bb6688; } /* SpecialString */
-code > span.im { } /* Import */
-code > span.va { color: #19177c; } /* Variable */
-code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-code > span.op { color: #666666; } /* Operator */
-code > span.bu { } /* BuiltIn */
-code > span.ex { } /* Extension */
-code > span.pp { color: #bc7a00; } /* Preprocessor */
-code > span.at { color: #7d9029; } /* Attribute */
-code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
-code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
-  </style>
+
   <link rel="stylesheet" href="reveal.js/css/theme/black.css" id="theme">
-  <link rel="stylesheet" href="css/matsuura.css"/>
+  <link rel="stylesheet" href="./css/matsuura.css"/>
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/solarized-light.min.css">
   <!-- Printing and PDF exports -->
   <script>
     var link = document.createElement( 'link' );
@@ -57,415 +22,21 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
     document.getElementsByTagName( 'head' )[0].appendChild( link );
   </script>
   <!--[if lt IE 9]>
-  <script src="reveal.js/lib/js/html5shiv.js"></script>
+  <script src="./lib/js/html5shiv.js"></script>
   <![endif]-->
 </head>
 <body>
   <div class="reveal">
     <div class="slides">
 
+      <section data-markdown="index.md"
+               data-separator="^---"
+               data-separator-vertical="^--"
+               data-separator-notes="^note:"
+               data-charset="utf-8">
+      </section>
 
-<section id="digital-fabrication" class="slide level1">
-<h1>Digital fabrication</h1>
-<p>2017 3D講義スライド</p>
-<p>松浦知也</p>
-</section>
-<section class="slide level1">
 
-<h2 id="今回の最終目標">今回の最終目標</h2>
-<ul>
-<li>2Dの時:イラレなどでは作りにくい図形をプログラミングで作る</li>
-<li>今回:<strong>普通の3Dモデリングでは作りにくい3Dオブジェクトを作る</strong></li>
-</ul>
-</section>
-<section class="slide level1">
-
-<h2 id="dのデータ構造">3Dのデータ構造</h2>
-<table>
-<thead>
-<tr class="header">
-<th>データの種類</th>
-<th>内容</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>ポイントクラウド</td>
-<td>点の集まり</td>
-</tr>
-<tr class="even">
-<td>ワイヤーフレーム</td>
-<td>ポイントクラウド+頂点同士のつながり</td>
-</tr>
-<tr class="odd">
-<td>サーフェス</td>
-<td>ワイヤーフレーム+どこに面が張られているか</td>
-</tr>
-<tr class="even">
-<td>ソリッド</td>
-<td>サーフェース+どこの面で閉じた空間が充填されているか</td>
-</tr>
-</tbody>
-</table>
-<ul>
-<li>最終的に体積を持っていないと3Dプリンタなどで出力できない</li>
-</ul>
-</section>
-<section class="slide level1">
-
-<h2 id="dプログラミング">3D+プログラミング</h2>
-<ul>
-<li>これらのデータを直に扱うのも不可能ではないが、大変</li>
-<li>そこでProcessingの時と同様、<strong>単純な3Dオブジェクトを組み合わせる</strong></li>
-<li>加えて3Dでは、<strong>単純な2D図形を押し出して3Dにする</strong>事もできる</li>
-</ul>
-</section>
-<section class="slide level1">
-
-<h2 id="単純図形の組み合わせ">単純図形の組み合わせ</h2>
-<figure>
-<img src="./img/primitives.png" alt="青:sphere 赤:cube 緑:cylinder" /><figcaption>青:sphere 赤:cube 緑:cylinder</figcaption>
-</figure>
-</section>
-<section class="slide level1">
-
-<h3 id="押し出し">押し出し</h3>
-<figure>
-<img src="./img/extrusion.png" alt="全てsquareを押し出している。拡大縮小、回転しながら押し出すことで様々な形状が作れる" /><figcaption>全てsquareを押し出している。拡大縮小、回転しながら押し出すことで様々な形状が作れる</figcaption>
-</figure>
-</section>
-<section class="slide level1">
-
-<h2 id="作例">作例</h2>
-<figure>
-<img src="./img/scadsample.png" alt="squareを回転押し出し+ランダム位置にcylinderを配置して引き算" /><figcaption>squareを回転押し出し+ランダム位置にcylinderを配置して引き算</figcaption>
-</figure>
-</section>
-<section class="slide level1">
-
-<h2 id="今回使うソフトopenscad">今回使うソフト：OpenSCAD</h2>
-<p><a href="http://www.openscad.org/" class="uri">http://www.openscad.org/</a></p>
-<ul>
-<li>プログラミング＋3DモデリングだとRhinoceros用のGrasshopperがよく使われるが、Rhinocerosは有償</li>
-<li>今回は3Dの形状を作るところまでで良いので、OpenSCADでも十分</li>
-</ul>
-</section>
-<section class="slide level1">
-
-<figure>
-<img src="img/flowchart.svg" alt="これらにif/for文、数学関数などを組み合わせて色んな形を作る" /><figcaption>これらにif/for文、数学関数などを組み合わせて色んな形を作る</figcaption>
-</figure>
-</section>
-<section class="slide level1">
-
-<h2 id="サンプル1">サンプル1</h2>
-<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="co">//tutorial1.scad</span>
-<span class="co">//Processing同様スラッシュ*2以降はコメントアウト（無効）</span>
-
-<span class="co">// 真ん中に箱を置く</span>
-<span class="fu">cube</span>(<span class="dv">10</span>); <span class="co">//単位はmm</span></code></pre></div>
-</section>
-<section class="slide level1">
-
-<h3 id="結果">結果</h3>
-<figure>
-<img src="./img/scad1.png" />
-</figure>
-</section>
-<section class="slide level1">
-
-<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="co">// 真ん中に箱を置く</span>
-<span class="fu">cube</span>(<span class="dv">10</span>); <span class="co">//単位はmm</span>
-
-<span class="co">//移動させる</span>
-<span class="fu">translate</span>([<span class="dv">30</span>,<span class="dv">20</span>,<span class="dv">0</span>]){<span class="co">//中括弧は省略できるが見にくくなる</span>
-    <span class="co">//幅、奥行き、高さを別々にする、中心に配置する</span>
-    <span class="fu">cube</span>([<span class="dv">10</span>,<span class="dv">20</span>,<span class="dv">30</span>],center=<span class="kw">true</span>);
-}
-
-<span class="co">//移動してから軸の周りに回転させる。</span>
-<span class="fu">rotate</span>([<span class="dv">40</span>,<span class="dv">45</span>,<span class="dv">70</span>]){
-    <span class="fu">translate</span>([<span class="dv">30</span>,<span class="dv">20</span>,<span class="dv">0</span>]){
-     <span class="fu">cube</span>([<span class="dv">10</span>,<span class="dv">20</span>,<span class="dv">30</span>],center=<span class="kw">true</span>);   
-    }
-}
-
-<span class="co">//回転してから平行移動させる</span>
-<span class="fu">translate</span>([<span class="dv">30</span>,<span class="dv">20</span>,<span class="dv">0</span>]){
-    <span class="fu">rotate</span>([<span class="dv">40</span>,<span class="dv">45</span>,<span class="dv">70</span>]){
-    <span class="fu">cube</span>([<span class="dv">10</span>,<span class="dv">20</span>,<span class="dv">30</span>],center=<span class="kw">true</span>);   
-    }
-}</code></pre></div>
-</section>
-<section class="slide level1">
-
-<h3 id="結果-1">結果</h3>
-<figure>
-<img src="./img/scad2.png" />
-</figure>
-</section>
-<section class="slide level1">
-
-<h2 id="サンプル2">サンプル2</h2>
-<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="co">//tutorial_3d_primitives.scad</span>
-<span class="fu">union</span>(){<span class="co">//2つ以上のオブジェクトを合体</span>
-    <span class="fu">cube</span>(<span class="dv">10</span>,center=<span class="kw">true</span>);
-    <span class="fu">translate</span>([<span class="dv">0</span>,<span class="dv">0</span>,<span class="fl">7.5</span>]){
-    <span class="fu">sphere</span>(<span class="dv">10</span>); <span class="co">//半径で指定。d＝にすると直径にも出来る</span>
-}
-    <span class="fu">translate</span>([<span class="dv">0</span>,<span class="dv">0</span>,<span class="fl">7.5</span>*<span class="dv">2</span>]){
-    <span class="fu">cylinder</span>(<span class="dv">10</span>,<span class="dv">5</span>,<span class="dv">7</span>); <span class="co">//高さ 、始まり半径、終わり半径</span>
-}
-    <span class="fu">translate</span>([<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">30</span>]){
-    <span class="fu">sphere</span>(<span class="fl">7.5</span>,$fn=<span class="dv">100</span>); <span class="co">//$fnでメッシュの粗さを変えられる。</span>
-  }
-  
-  }
-</code></pre></div>
-</section>
-<section class="slide level1">
-
-<h2 id="結果-2">結果</h2>
-<figure>
-<img src="./img/tutorial2.png" />
-</figure>
-</section>
-<section class="slide level1">
-
-<h2 id="サンプル3-組み合わせ">サンプル3 組み合わせ</h2>
-<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="co">//tutorial3_boolean.scad</span>
-module <span class="fu">cylinder1</span>(){<span class="co">//幾つかの処理をまとめるにはmoduleを使います</span>
-        <span class="fu">rotate</span>([<span class="dv">45</span>,<span class="dv">45</span>,<span class="dv">45</span>]){
-        <span class="fu">cylinder</span>(<span class="dv">10</span>,<span class="dv">5</span>,<span class="dv">5</span>);
-        }
-    }
-module <span class="fu">cylinder2</span>(){
-         <span class="fu">translate</span>([<span class="fl">2.5</span>,<span class="dv">5</span>,<span class="fl">2.5</span>]){ 
-        <span class="fu">rotate</span>([<span class="dv">30</span>,<span class="dv">30</span>,<span class="dv">30</span>]){
-        <span class="fu">cylinder</span>(<span class="dv">10</span>,<span class="dv">5</span>,<span class="dv">5</span>);
-        }
-    }
-}
-<span class="fu">union</span>(){ <span class="co">// 合体(論理和) 実は書かなくても自動的にやってくれている</span>
-    <span class="fu">cylinder1</span>();
-    <span class="fu">cylinder2</span>();
-    }
-
-<span class="fu">translate</span>([<span class="dv">20</span>,<span class="dv">0</span>,<span class="dv">0</span>]){ 
-    <span class="fu">intersection</span>(){ <span class="co">//共通部分（論理積）</span>
-        <span class="fu">cylinder1</span>();
-        <span class="fu">cylinder2</span>();
-        }      
-}
-
-<span class="fu">translate</span>([<span class="dv">40</span>,<span class="dv">0</span>,<span class="dv">0</span>]){ 
-    <span class="fu">difference</span>(){ <span class="co">//引き算</span>
-        <span class="fu">cylinder1</span>();
-        <span class="fu">cylinder2</span>();
-    }
-}
-
-<span class="fu">translate</span>([<span class="dv">60</span>,<span class="dv">0</span>,<span class="dv">0</span>]){ 
-    <span class="fu">difference</span>(){ <span class="co">//differenceは呼び出す順番に依って結果が変わる</span>
-        <span class="fu">cylinder2</span>();
-        <span class="fu">cylinder1</span>();
-
-    }
-}</code></pre></div>
-</section>
-<section class="slide level1">
-
-<h2 id="結果-3">結果</h2>
-<figure>
-<img src="./img/tutorial3.png" />
-</figure>
-</section>
-<section class="slide level1">
-
-<h2 id="サンプル4-2d図形">サンプル4 2D図形</h2>
-<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="co">//tutorial4_2d_primitives.scad</span>
-<span class="fu">square</span>([<span class="dv">10</span>,<span class="dv">20</span>]);
-
-<span class="fu">translate</span>([<span class="dv">20</span>,<span class="dv">0</span>,<span class="dv">0</span>]){
-<span class="fu">circle</span>(<span class="dv">10</span>);
-}
-
-<span class="fu">translate</span>([<span class="dv">40</span>,<span class="dv">0</span>,<span class="dv">0</span>]){
-<span class="fu">circle</span>(<span class="dv">10</span>,$fn=<span class="dv">100</span>);<span class="co">//球と同じくメッシュの細かさが指定できる</span>
-}
-
-<span class="fu">translate</span>([<span class="dv">60</span>,<span class="dv">0</span>,<span class="dv">0</span>]){
-<span class="fu">text</span>(<span class="st">&quot;A&quot;</span>,<span class="dv">20</span>);<span class="co">//残念ながら日本語は無理</span>
-}
-
-<span class="fu">translate</span>([<span class="dv">80</span>,<span class="dv">0</span>,<span class="dv">0</span>]){
-<span class="fu">polygon</span>([[<span class="dv">10</span>,<span class="dv">0</span>],[<span class="dv">20</span>,<span class="dv">40</span>],[<span class="dv">40</span>,<span class="dv">25</span>],[<span class="dv">80</span>,<span class="dv">10</span>],[<span class="dv">30</span>,-<span class="dv">20</span>]]);   
-}</code></pre></div>
-</section>
-<section class="slide level1">
-
-<h2 id="結果-4">結果</h2>
-<figure>
-<img src="./img/tutorial4.png" />
-</figure>
-</section>
-<section class="slide level1">
-
-<h2 id="サンプル5-直線押出し">サンプル5 直線押出し</h2>
-<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="co">//tutorial5_linear_extrude.scad</span>
-module <span class="fu">my2d</span>(){
-    <span class="fu">difference</span>(){ <span class="co">//booleanは2D同士にも使える</span>
-     <span class="fu">square</span>([<span class="dv">10</span>,<span class="dv">20</span>],center=<span class="kw">true</span>);
-        <span class="fu">translate</span>([<span class="dv">2</span>,<span class="dv">0</span>,<span class="dv">0</span>]){
-         <span class="fu">circle</span>(<span class="dv">4</span>);
-        }
-        }   
-    }
-    
-    <span class="fu">linear_extrude</span>(<span class="dv">10</span>){ <span class="co">//1つだけなら高さの指定</span>
-        <span class="fu">my2d</span>();
-    }
-<span class="fu">translate</span>([<span class="dv">20</span>,<span class="dv">0</span>,<span class="dv">0</span>]){
-     <span class="fu">linear_extrude</span>(<span class="dv">10</span>,scale=<span class="fl">0.5</span>){ <span class="co">//押し出しながら拡大縮小</span>
-        <span class="fu">my2d</span>();
-    }
-}
-<span class="fu">translate</span>([<span class="dv">40</span>,<span class="dv">0</span>,<span class="dv">0</span>]){
-     <span class="fu">linear_extrude</span>(<span class="dv">10</span>,scale=<span class="fl">0.5</span>,twist=<span class="dv">90</span>){ <span class="co">//押し出しながら回転</span>
-        <span class="fu">my2d</span>();
-    }
-}
-<span class="fu">translate</span>([<span class="dv">60</span>,<span class="dv">0</span>,<span class="dv">0</span>]){
-     <span class="fu">linear_extrude</span>(<span class="dv">10</span>,scale=<span class="fl">0.5</span>,twist=<span class="dv">180</span>,$fn=<span class="dv">100</span>){ <span class="co">//ここでも粗さの指定が出来る</span>
-         <span class="fu">my2d</span>();
-    }
-}</code></pre></div>
-</section>
-<section class="slide level1">
-
-<h2 id="結果-5">結果</h2>
-<figure>
-<img src="./img/tutorial5.png" />
-</figure>
-</section>
-<section class="slide level1">
-
-<h2 id="サンプル6-回転押し出し">サンプル6 回転押し出し</h2>
-<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="co">//tutorial6_rotate_extrude.scad</span>
-module <span class="fu">my2d</span>(){
-    <span class="fu">translate</span>([<span class="dv">10</span>,<span class="dv">0</span>,<span class="dv">0</span>]){
-    <span class="fu">difference</span>(){ 
-     <span class="fu">square</span>([<span class="dv">10</span>,<span class="dv">20</span>],center=<span class="kw">true</span>);
-        <span class="fu">translate</span>([<span class="dv">2</span>,<span class="dv">0</span>,<span class="dv">0</span>]){
-         <span class="fu">circle</span>(<span class="dv">4</span>);
-        }
-        }
-    }
-    } 
-    
-<span class="fu">my2d</span>();
-
-<span class="fu">translate</span>([<span class="dv">40</span>,<span class="dv">0</span>,<span class="dv">0</span>]){    
-<span class="fu">rotate_extrude</span>(){ <span class="co">//x軸回りに90度傾けてから、ｚ軸回りに360度押し出しながら回す</span>
-    <span class="fu">my2d</span>();
-    }
-    
-}
- <span class="fu">translate</span>([<span class="dv">80</span>,<span class="dv">0</span>,<span class="dv">0</span>]){    
-<span class="fu">rotate_extrude</span>($fn=<span class="dv">100</span>){
-    <span class="fu">my2d</span>();
-    }
-    
-}</code></pre></div>
-</section>
-<section class="slide level1">
-
-<h2 id="結果-6">結果</h2>
-<figure>
-<img src="./img/tutorial6.png" />
-</figure>
-</section>
-<section class="slide level1">
-
-<h2 id="サンプル7-繰り返し">サンプル7 繰り返し</h2>
-<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java">numcubes = <span class="dv">32</span>; <span class="co">//定数の定義はいきなり名前を宣言してOK</span>
-<span class="fu">difference</span>(){
-    <span class="fu">sphere</span>(<span class="dv">40</span>,$fn=<span class="dv">55</span>); <span class="co">//中心に大きな球を作って、キューブを引き算</span>
-   <span class="kw">for</span>(i=[<span class="dv">1</span>:numcubes]){ <span class="co">//Processingと書き方が違うので注意、この場合1から32まで</span>
-        <span class="fu">rotate</span>([<span class="dv">0</span>,i*<span class="dv">180</span>/numcubes<span class="dv">-90</span>,i*<span class="dv">2</span>*<span class="dv">360</span>/numcubes]){
-        <span class="fu">translate</span>([<span class="dv">45</span>,<span class="dv">0</span>,<span class="dv">0</span>]){
-        <span class="fu">rotate</span>([<span class="dv">45</span>*i,<span class="dv">45</span>*i,<span class="dv">45</span>]){
-        <span class="fu">cube</span>(<span class="dv">30</span>,center=<span class="kw">true</span>); <span class="co">// 箱を回転して、平行移動して、また回転</span>
-                    }       
-                }
-             }
-        }
-}</code></pre></div>
-</section>
-<section class="slide level1">
-
-<h2 id="結果-7">結果</h2>
-<figure>
-<img src="./img/tutorial7.png" />
-</figure>
-</section>
-<section class="slide level1">
-
-<h2 id="その他便利情報">その他便利情報</h2>
-<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="co">//rands(min,max,length)</span>
-<span class="co">//一つの乱数が欲しい場合はこう（配列で返ってくるので取り出してあげないといけない）</span>
-<span class="fu">rands</span>(-<span class="dv">20</span>,<span class="dv">20</span>,<span class="dv">1</span>)[<span class="dv">0</span>]
-
-<span class="co">//3次元空間をランダムに移動させる</span>
-<span class="fu">translate</span>(<span class="fu">rands</span>(-<span class="dv">20</span>,<span class="dv">20</span>,<span class="dv">3</span>)){
-<span class="co">//cubeなど</span>
-}
-
-<span class="co">//intersection_for(){}</span>
-<span class="co">//ループ内で書いたオブジェクト全ての共通部分を取る（example3.scad参照）</span>
-<span class="fu">intersection_for</span>(i=[<span class="dv">1</span>:<span class="dv">10</span>]){
-<span class="co">//cubeなど</span>
-}
-
-<span class="co">//hull(){}</span>
-<span class="co">//{}内の2D図形を輪ゴムで外側をくくったような2D図形を出す</span>
-
-<span class="fu">hull</span>(){
-<span class="fu">translate</span>([<span class="dv">10</span>,<span class="dv">10</span>]){
-<span class="fu">square</span>(<span class="dv">10</span>);
-}
-<span class="fu">text</span>(<span class="st">&quot;a&quot;</span>,<span class="dv">10</span>);
-}</code></pre></div>
-</section>
-<section class="slide level1">
-
-<h2 id="出力">出力</h2>
-<p>まずRender（砂時計マーク）する</p>
-<figure>
-<img src="./img/render.png" />
-</figure>
-</section>
-<section class="slide level1">
-
-<h2 id="出力-1">出力</h2>
-<p>その後ExportでSTLファイルに出力</p>
-<figure>
-<img src="./img/export.png" />
-</figure>
-</section>
-<section class="slide level1">
-
-<h2 id="とりあえず困ったら">とりあえず困ったら</h2>
-<p><a href="http://www.openscad.org/cheatsheet/index.html" class="uri">http://www.openscad.org/cheatsheet/index.html</a></p>
-</section>
-<section class="slide level1">
-
-<h2 id="日本語資料">日本語資料</h2>
-<p>※あんまり無い</p>
-<p><a href="https://ja.wikibooks.org/wiki/OpenSCAD_User_Manual">OpenSCAD日本語Wiki(一部未翻訳)</a></p>
-<p><a href="http://qiita.com/ganta-viii@github/items/b984519ad24ac3c7d7d5">OpenSCADで始めるプログラマブルな3Dモデリング</a></p>
-<p><a href="http://picworld.jp/2016/12/21/openscad-%E3%81%A7%E3%80%8E%E3%81%91%E3%82%93%E7%8E%89%E3%80%8D%E4%BD%9C%E3%81%A3%E3%81%A6%E3%81%BF%E3%81%9F-%E3%80%8E%E3%81%9F%E3%81%BE%E3%80%8F%E7%B7%A8%EF%BC%88%E5%88%9D%E5%BF%83%E8%80%85/">OpenSCAD で『けん玉』作ってみた – 『たま』編（初心者向けのチュートリアルに使ってね）</a></p>
-</section>
     </div>
   </div>
 
@@ -477,13 +48,25 @@ module <span class="fu">my2d</span>(){
       // Full list of configuration options available at:
       // https://github.com/hakimel/reveal.js#configuration
       Reveal.initialize({
-
+        width: "100%",
+      	height: "100%",
+        maxScale: 1.0,
+        minScale:1.0,
+        margin:0.15,
+        history:true,
         // Optional reveal.js plugins
         dependencies: [
           { src: 'reveal.js/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+          { src: 'reveal.js/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+          { src: 'reveal.js/plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+          { src: 'reveal.js/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
           { src: 'reveal.js/plugin/zoom-js/zoom.js', async: true },
           { src: 'reveal.js/plugin/notes/notes.js', async: true }
-        ]
+        ],
+        markdown: {
+
+	      }
+
       });
     </script>
     </body>
