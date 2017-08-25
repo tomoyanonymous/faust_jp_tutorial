@@ -121,6 +121,58 @@ Matsuura Tomoya/松浦知也
 
 ---
 
+# ユースケース
+
+--
+
+## Guitarix
+
+<http://guitarix.org/>
+
+- Linux向けギターアンプシミュレーター
+- コアコードはFaustの標準ライブラリに付属！
+
+--
+
+## Radium
+
+<http://users.notam02.no/~kjetism/radium/>
+
+- いわゆるTracker系のシーケンサ
+- コンパイラ内蔵(!)で直接faustコードをエフェクトとして使用可
+- ただMac版はめちゃくちゃ不安定
+
+--
+
+## pMix2
+
+<https://github.com/olilarkin/pMix2>
+
+- VSTプラグイン上で更にVSTやfaustコードをルーティングできる
+- しかもパラメータを自由にマップしてまとめてオートメーション
+- これのために[JUCE用faustモジュール](https://github.com/olilarkin/juce_faustllvm)を開発している
+
+--
+
+## OWL
+
+<https://hoxtonowl.com/>
+
+- プログラマブルなギターペダルorユーロラックモジュール
+- faust2owlスクリプト一発で出力可能!
+
+--
+
+## Bela
+
+<http://bela.io/>
+
+- Beaglebone Black用Capeと専用カスタムOS
+- バッファサイズを2まで落とせる低レイテンシー
+- faust2belaのスクリプトが古い？が手動でも簡単に設定可
+
+---
+
 # 開発環境
 
 * コンパイラ
@@ -476,6 +528,14 @@ GoogleChromeのみ
 - 2017年8月に出たばっかり
 - シングルファイルのみのコンパイル
 - WebAssemblyなのでブラウザ上にしてはコンパイル時間が早い(らしい)
+
+--
+
+## Pythonラッパー
+
+<https://github.com/marcecj/faust_python>
+
+C経由でNumPyとセットで使うらしい（未使用）
 
 ---
 
@@ -959,11 +1019,238 @@ knob = hslider("volume[style:knob][unit:dB][tooltip:this is volume]",def,min,max
 
 代表的なのは[style:knob]や表示単位[unit:Hz]とかMIDI実装の[cc:(割り当てたいCCナンバー)]とか
 
+---
 
+# コンパイラ関係
 
 ---
 
+## アーキテクチャファイル
 
+```java
+faust -a vst.cpp first.dsp
+```
+
+-aオプションで指定可能(大概は標準で付属しているのを使うが、自分で書いたのも当然使える)
+
+--
+
+- faustをコンパイルすると`mydsp`というクラスが出て来る
+- 中でも重要なのは`compute()`と`buildUserInterface()`
+- `compute()`には実際の信号処理内容、`buildUserInterface()`にはどのUIを組み立てるかが記述される
+- C++コードからmydspをインスタンス化し、どこかでcompute()を呼び出す
+- また、buildUserInterface()の中で`addButton()`などが呼び出されるので実際の処理内容を予め書いておく
+
+--
+
+…というのをアーキテクチャに書いておくと、コンパイラが一つのコードにまとめて出力してくれる
+
+→後はC++のコンパイラを実行すればいいだけ!
+
+※但し依存ファイルの配置がきちんとされていれば
+
+---
+
+### faust2xxx
+
+でも、どうせならfaustのコードからいきなりバイナリまで行って欲しい
+
+→処理をまとめたシェルスクリプトを書いておこう
+
+--
+
+付属しているやつ
+
+```bash
+faust2alqt               faust2dssi               faust2jackinternal       faust2msp64              faust2rosgtk             faust2w32max6
+faust2alsa               faust2dummy              faust2jackserver         faust2netjackconsole     faust2rpialsaconsole     faust2w32msp
+faust2alsaconsole        faust2eps                faust2jaqt               faust2netjackqt          faust2rpinetjackconsole  faust2w32puredata
+faust2android            faust2faustvst           faust2juce               faust2octave             faust2sc                 faust2w32vst
+faust2api                faust2firefox            faust2ladspa             faust2owl                faust2sig                faust2wasm
+faust2asmjs              faust2gen                faust2lv2                faust2paqt               faust2sigviewer          faust2webaudio
+faust2atomsnippets       faust2graph              faust2lv2synth           faust2pdf                faust2smartkeyb          faust2webaudioasm
+faust2au                 faust2graphviewer        faust2mathdoc            faust2plot               faust2supercollider      faust2webaudiowasm
+faust2bela               faust2ios                faust2mathviewer         faust2png                faust2svg                faust2webaudiowast
+faust2caqt               faust2iosKeyboard        faust2max6               faust2puredata           faust2unity
+faust2caqtios            faust2jack               faust2md                 faust2raqt               faust2vst
+faust2csound             faust2jackconsole        faust2msp                faust2ros                faust2vsti
+```
+
+note:
+何個かデモする。faust2juceとfaust2webaudiowasm
+
+--
+
+- QtならQtの、VSTならVSTのSDKが正しい位置に配置されてないと普通にエラー（どこに配置すべきかはスクリプト読まないとだめな場合が多い）
+- FaustLiveやオンラインコンパイラーはgrame側のサーバーで全部やってくれるのでこの辺を考えなくていいので気楽
+
+---
+
+## コンパイルオプション
+
+--
+
+### 使うかも
+
+- -e faustコードをプリミティブだけに展開して出力
+- -a アーキテクチャファイルの指定
+- -mdoc dspファイルのコメント中にtexでドキュメントを書いた物を出力する
+
+--
+
+### 演算精度
+
+- -single:32bit（標準）
+- -double:64bit
+- -quad:128bit
+
+--
+
+### 並列化
+
+* -scal 並列化なし（標準）
+* -vec  並列化あり
+* -vs <n> 	並列化した時のforループのバッファサイズ (default 32 samples)
+* -lv <n> 	--loop-variant [0:fastest (default), 1:simple]
+* -omp    	--openMPコード出力
+* -pl     	--par-loop 
+
+--
+
+### 実験機能
+
+- -ocl openCL
+- -cuda CUDA
+
+---
+
+# とりあえず作る
+
+--
+
+[まずサイン波を作る](http://faust.grame.fr/examples/2015/09/30/oscillator.html)
+
+リンクのやり方とはちょっと違うがほとんど同じ
+
+--
+
+- 方針:0~2piのノコギリ波を作り、sin/cosに入力
+- まず、ノコギリ波を作ろう
+
+--
+
+## 1サンプルに1増える
+
+![](./sample_program/countup-svg/process.svg)
+
+```java
+process = +(1)~_;
+```
+
+<small>※音出したらめちゃくちゃに割れるのでオンラインコンパイラなどで試すほうがいいかも</small>
+
+--
+
+## 1000を超えたらリセット
+
+![](./sample_program/reset1000-svg/process.svg)
+
+```java
+process = +(1)~%(1000);
+```
+
+--
+
+## 周波数を決めよう
+
+```java
+import("stdfaust.lib");
+freq = hslider("freq",440,1,20000,0.01);
+periodinsamps = int(ma.SR/freq); //ma.SRはサンプリングレートを呼び出してくれる
+
+process = +(1) ~ %(periodinsamps);
+```
+
+--
+
+![](./sample_program/setfreq-svg/process.svg)
+
+--
+
+## 範囲を0~2piにして、関数にしよう
+
+```java
+import("stdfaust.lib");
+freq = hslider("freq",440,1,20000,0.01);
+periodinsamps(f) = int(ma.SR/f);
+saw(f) = (+(1) ~ %(periodinsamps(f)) ) : /(periodinsamps(f)) : *(2*ma.PI);
+
+process = saw(freq);
+```
+
+--
+
+![](./sample_program/simplesaw-svg/process.svg)
+
+--
+
+## 完成
+
+```java
+import("stdfaust.lib");
+freq = hslider("freq",440,1,20000,0.01);
+periodinsamps(f) = int(ma.SR/f);
+saw(f) = (+(1) ~ %(periodinsamps(f)) ) : /(periodinsamps(f)) : *(2*ma.PI);
+
+process = saw(freq):cos;
+```
+
+音を出してみよう
+
+--
+
+ちなみに、ライブラリにサイン波だけでも死ぬほど揃ってます
+
+```java
+import("stdfaust.lib");
+//テーブルベース
+os.oscsin(freq)
+os.hs_oscsin(freq,c)
+os.oscp(freq,p)
+os.osci(freq)
+//フィルタベース
+os.oscb(freq)
+os.oscrq(freq)
+os.oscrs(freq)
+os.oscs(freq)
+//ウェーブガイドベース
+oscw(freq)
+```
+
+---
+
+## ライブラリを活用してみよう
+
+```java
+import("stdfaust.lib");
+//8*8matrix reverb
+primes = 1,2,3,5,7,11,13,17;
+dtime = hslider("delaytime[unit:ms]",20,10,200,0.001)*ma.SR/1000;
+delay_bus = par(i,8,de.fdelay(2*ma.SR,dtime+ba.take(i+1,primes)));
+
+fbgain = hslider("feedback_gain[unit:dB]",-7,-70,-6,0.01):ba.db2linear;
+gain_bus = par(i,8,*(fbgain));
+
+matrix = ro.hadamard(8):par(i,8,/(sqrt(2)));
+merge=si.bus(8):>si.bus(2):(/(4),/(4));
+
+process = (si.bus(2) <: si.bus(8)) : (si.bus(16):>si.bus(8):matrix)~(delay_bus:gain_bus) :(merge);
+```
+
+--
+
+- ゲイン上げるorスピーカーだと普通にハウるのでヘッドホンを半分被ってどうぞ
+- こういう並列&フィードバックはMaxなどで面倒くさいけどFaustだと得意なもの
 
 ---
 
@@ -976,7 +1263,28 @@ knob = hslider("volume[style:knob][unit:dB][tooltip:this is volume]",def,min,max
 - <https://ccrma.stanford.edu/~jos/filters/Digital_Filtering_Faust_PD.html>
 - <https://matsuuratomoya.com/blog/2016-12-01/faust-introduction/>
 
+--
 
+## メーリングリスト
+
+<https://sourceforge.net/p/faudiostream/mailman/>
+
+- usersは結構活発に質問来てます
+- develは[GithubのIssue](https://github.com/grame-cncm/faust/issues)に段々以降中?
+
+--
+
+## Slack
+
+<https://faustslack.herokuapp.com/>
+
+- まだ20人くらいしかいないし全然撥弦がない
+
+---
+
+## [#faust_jp](https://twitter.com/search?q=%23faust_jp)でつぶやこう
+
+質問全レスします
 </textarea>
 </section>
 
