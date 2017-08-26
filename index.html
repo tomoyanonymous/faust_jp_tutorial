@@ -653,7 +653,7 @@ process = (10,20)<:(+,*,/);
 ### A:>B →結合
 
 ```java
-process = (10,20,30,40):*;
+process = (10,20,30,40):>*;
 ```
 
 ![](./img/merge1-svg/process.svg)<!-- .element style="width:300px;"-->
@@ -670,7 +670,7 @@ process = +(12345) ~ *(1103515245);
 
 ![](./img/rec1-svg/process.svg)
 
-制限:**Aの_入力_数≧Bの_出力_数**
+制限:**Aの_入力_数≧Bの_出力_数_かつ_Bの_入力_数≧Aの_出力_数 **
 
 ここではA,Bともに1in1outなので満たしている
 
