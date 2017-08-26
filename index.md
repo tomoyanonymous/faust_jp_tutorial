@@ -29,6 +29,8 @@ Matsuura Tomoya/松浦知也
 
 ---
 
+![](img/faust_logo.png)
+
 **FAUST** = **F**unctional-**AU**dio-**ST**ream
 
 ---
@@ -50,11 +52,6 @@ Matsuura Tomoya/松浦知也
 --
 
 ![FAUSTワークフロー](img/faust_workflow.png)<!-- .element style="max-width:70%;" -->
-
----
-
-## 立ち位置
-
 
 ---
 
@@ -159,7 +156,7 @@ Matsuura Tomoya/松浦知也
 
 ---
 
-# 何はともあれ、動かしてみよう
+# 何はともあれ、<br>動かしてみよう
 
 順番にデモします
 
@@ -360,6 +357,41 @@ faust2svg second.dsp
 
 ブラウザで開くと、ネストされた部分をクリックで掘っていける
 
+--
+
+### バージョンの話
+
+- **faust0(masterブランチ)** C++のみ
+- **faust2(faust2ブランチ)** LLVMでいろんなコードに/libfaust使える
+- 基本的に最近使ってるのはfaust2だが、ライブラリなどの開発はmaster-devブランチでやってたりする
+
+--
+
+### インストール
+
+バイナリ配布無し！！
+
+```bash
+git clone git@github.com:grame-cncm/faust.git
+cd faust && git checkout faust2
+make
+sudo make install
+```
+
+**依存：llvm,openssl,(libmicrohttp)**
+
+結構パスを通すのがつらい
+
+--
+
+### homebrew作りました
+
+```
+brew tap tomoyanonymous/faust&&brew install faust
+```
+
+llvmのビルドに1時間以上掛かるので注意
+
 ---
 
 ## FaustLive
@@ -428,6 +460,11 @@ Cmd+KをするとQRコードとURLが出てくる
 - grameのサーバーにソース送ってコンパイル、バイナリをzipで送り返してくれる（Faustweb）
 
 ![](img/faustweb.png)
+--
+
+- よく脈絡なくクラッシュするが気にしない
+- 変なファイルを読ませてしまって起動しなくなったらユーザーフォルダ直下の`.FaustLive-CurrentSession-2.0`というフォルダを丸ごと削除（勝手に復活します）
+- それでもダメなら再インストールでだいたい解決
 
 ---
 
@@ -492,7 +529,7 @@ GoogleChromeのみ
 - シングルファイルのみのコンパイル
 - WebAssemblyなのでブラウザ上にしてはコンパイル時間が早い(らしい)
 
---
+---
 
 ## Pythonラッパー
 
@@ -526,7 +563,7 @@ process = _,!;//アンダーバーはpass、！はcut
 
 ---
 
-## コンポジション（接続）記法
+## コンポジション(接続)記法
 
 * FAUSTの最も特徴的な記法
 * 最低限、プリミティブとコンポジションを覚えるとプログラムが書ける
@@ -734,6 +771,15 @@ gain_offset(gain,offset) = _*gain+offset+initial_offset
 ```
 
 ※セミコロンはwithの中カッコの**後**
+
+---
+
+## その他
+
+- パターンマッチング+再帰関数がFaustの真髄
+- 上手く使うとparでもseqでも書けない物が書ける
+- ですが難しいので今回は省略
+- [ここ](https://matsuuratomoya.com/blog/2017-01-07/faust_grammer/)の後半で解説しています
 
 ---
 
@@ -1241,7 +1287,7 @@ process = (si.bus(2) <: si.bus(8)) : (si.bus(16):>si.bus(8):matrix)~(delay_bus:g
 
 <https://faustslack.herokuapp.com/>
 
-- まだ20人くらいしかいないし全然撥弦がない
+- まだ20人くらいしかいないし全然発言がない
 
 ---
 
