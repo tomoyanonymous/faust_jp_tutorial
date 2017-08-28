@@ -365,7 +365,7 @@ faust first.dsp -o first.cpp
 
 ```bash
 #必ずソースファイルと同ディレクトリで実行
-faust2svg first.dsp 
+faust2svg first.dsp
 ```
 
 --
@@ -385,7 +385,7 @@ process=fi.lowpass(1,100);
 ```
 
 ```bash
-faust2svg second.dsp 
+faust2svg second.dsp
 ```
 
 --
@@ -615,7 +615,7 @@ process = _,!;//アンダーバーはpass、！はcut
 ### A,B →並列
 
 ```java
-process = 10 , * ; 
+process = 10 , * ;
 ```
 
 ![](./img/par1-svg/process.svg)
@@ -629,7 +629,7 @@ process = 10 , * ;
 ### A:B →直列
 
 ```java
-process = ( * , / ) : + ; 
+process = ( * , / ) : + ;
 ```
 
 ![](./img/seq1-svg/process.svg)
@@ -835,7 +835,7 @@ gain_offset(gain,offset) = _*gain+offset+initial_offset
 
 Cのstructとか、jsのオブジェクトに近い
 
-```java 
+```java
 params = environment{
     gain = 0.5;
     offset = -0.3;
@@ -874,7 +874,7 @@ mygainoff = component("gainoffset.dsp");
 process=mygainoff; //引数は使えないので注意
 ```
 
--- 
+--
 
 ### import()
 
@@ -1035,7 +1035,7 @@ sf = library("all.lib");
 
 ```java
 gr = hgroup("Foo",        vgroup("Faa",            hslider("volume" ,def,min,max,step)
-        ... 
+        ...
     )
     ...
 );
@@ -1159,7 +1159,7 @@ note:
 * -vs <n> 	並列化した時のforループのバッファサイズ (default 32 samples)
 * -lv <n> 	--loop-variant [0:fastest (default), 1:simple]
 * -omp    	--openMPコード出力
-* -pl     	--par-loop 
+* -pl     	--par-loop
 
 --
 
@@ -1346,9 +1346,6 @@ process = (si.bus(2) <: si.bus(8)) : (si.bus(16):>si.bus(8):matrix)~(delay_bus:g
 // Full list of configuration options available at:
 // https://github.com/hakimel/reveal.js#configuration
 Reveal.initialize({
-  width: "1920",
-  height: "1080",
-  margin:0.15,
   history:true,
   // Optional reveal.js plugins
   dependencies: [
